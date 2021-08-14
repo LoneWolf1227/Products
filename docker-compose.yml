@@ -1,0 +1,48 @@
+version: '3.2'
+
+networks:
+  hommler:
+
+services:
+  php_hommler:
+    image: yiisoftware/yii2-php:7.4-apache
+    container_name: php_hommler
+    volumes:
+      - ~/.composer-docker/cache:/root/.composer/cache:delegated
+      - ./:/app:delegated
+    ports:
+      - '8000:80'
+    networks:
+      hommler:
+
+  mysql_hommler:
+    image: mysql:8
+    container_name: 'mysql_hommler'
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: "yii2advanced"
+      MYSQL_USER: "yii2advanced"
+      MYSQL_PASSWORD: "123456"
+    networks:
+      hommler:
+
+  db_admin_hommler:
+    image: phpmyadmin/phpmyadmin:5.0.1
+    container_name: 'db-admin_hommler'
+    depends_on:
+      - mysql_hommler
+    environment:
+      PMA_HOST: mysql_hommler
+      PMA_PORT: 3306
+    ports:
+      - '7777:80'
+    networks:
+      hommler:
+
+
+volumes:
+  db_data:
