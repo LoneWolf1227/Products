@@ -2,15 +2,18 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use yii\base\BaseObject;
+use yii\web\IdentityInterface;
+
+class User extends BaseObject implements IdentityInterface
 {
     public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
+    public string $username;
+    public string $password;
+    public string $authKey;
+    public string $accessToken;
 
-    private static $users = [
+    private static array $users = [
         '100' => [
             'id' => '100',
             'username' => 'admin',
@@ -56,7 +59,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      * @param string $username
      * @return static|null
      */
-    public static function findByUsername($username)
+    public static function findByUsername(string $username): ?User
     {
         foreach (self::$users as $user) {
             if (strcasecmp($user['username'], $username) === 0) {
@@ -77,16 +80,21 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
-    public function getAuthKey()
+    public function getAuthKey(): ?string
     {
         return $this->authKey;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @param string $authKey authKey to validate
+     * @return bool if authKey provided is valid for current user
      */
-    public function validateAuthKey($authKey)
+    public function validateAuthKey($authKey): bool
     {
         return $this->authKey === $authKey;
     }
@@ -97,7 +105,7 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
      */
-    public function validatePassword($password)
+    public function validatePassword(string $password): bool
     {
         return $this->password === $password;
     }
