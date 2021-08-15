@@ -8,6 +8,7 @@ use yii\base\ErrorException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\Response;
 use yii\web\UploadedFile;
 
 class ProductController extends Controller
@@ -53,38 +54,45 @@ class ProductController extends Controller
             ],
         ];
     }
-    public function actionAdd()
+
+    public function actionAdd(): string
     {
         $model = new Products();
-        $message = '';
 
         if ($model->load(Yii::$app->request->post())){
             $uploadFile = UploadedFile::getInstance($model,'picture_name');
 
             $safeFileName = strtolower(md5( $uploadFile->getBaseName(). random_bytes(4)));
             $safeFileName .= '.'.$uploadFile->getExtension();
-            $message = 'Success';
+
             try {
-                $uploadFile->saveAs(Yii::getAlias('@productUpload').'/'.$safeFileName);
+                $result = $uploadFile->saveAs(Yii::getAlias('@productUpload').'/'.$safeFileName);
             } catch (ErrorException $e) {
-                $message = $e->getMessage();
+                $result = $e->getMessage();
             }
 
-            if ($message === 'Success') {
-                $model->picture_name = $safeFileName;
-                $model->save();
+            $model->picture_name = $safeFileName;
+
+            if ($result === true && $model->save()) {
+                Yii::$app->session->setFlash('products');
+            } else {
+                Yii::$app->session->setFlash('products', $result);
             }
         }
 
-        return $this->render('add', ['model' => $model, 'message' => $message]);
+        return $this->render('add', ['model' => $model]);
     }
 
-    public function actionDelete()
+    public function actionDelete(): Response
     {
-        return $this->render('delete');
+        $model = new Products();
+        if ($ids = Yii::$app->request->post()['ids']) {
+            $model->deleteProducts($ids);
+        }
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
-    public function actionUpdate()
+    public function actionUpdate(): string
     {
         return $this->render('update');
     }

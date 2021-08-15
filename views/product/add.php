@@ -6,19 +6,27 @@ use yii\helpers\Html;
 
 $this->title = 'Добавить продукт';
 $this->params['breadcrumbs'][] = $this->title;
+
+$flash = '';
+if (Yii::$app->session->hasFlash('products')) {
+    $flash = Yii::$app->session->getAllFlashes()["products"];
+}
+
 ?>
-<div class="">
-    <h1><?= Html::encode($this->title) ?></h1>
-    <div class="row">
+<div class="container">
+    <div class="row justify-content-center">
+        <h1><?= Html::encode($this->title) ?></h1>
+    </div>
+    <div class="row justify-content-center">
         <div class="col-lg-5">
-            <?php if (!empty($message) && $message !== 'Success') { ?>
+            <?php if (!empty($flash) && $flash !== true) { ?>
                 <div class="alert alert-danger">
-                    <?= Html::encode($message) ?>
+                    <?= Html::encode($flash) ?>
                 </div>
             <?php } ?>
-            <?php if (!empty($message) && $message === 'Success') { ?>
+            <?php if ($flash === true) { ?>
                 <div class="alert alert-success">
-                    <?= Html::encode($message) ?>
+                    Продукт успешно добавлено
                 </div>
             <?php } ?>
             <?php $form = ActiveForm::begin(['id' => 'products']); ?>

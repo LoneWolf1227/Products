@@ -52,4 +52,9 @@ class Products extends ActiveRecord
         ];
     }
 
+    public function deleteProducts($ids)
+    {
+        Products::deleteAll(['and', 'id' => $this->id], ['in', 'id', $ids]);
+    }
+
 }
