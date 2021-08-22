@@ -3,20 +3,19 @@
 namespace app\controllers;
 
 use app\models\Products;
+use app\services\FileUploadService;
 use Yii;
-use yii\base\ErrorException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\web\UploadedFile;
 
 class ProductController extends Controller
 {
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -42,7 +41,7 @@ class ProductController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -55,46 +54,64 @@ class ProductController extends Controller
         ];
     }
 
-    public function actionAdd(): string
+    /**
+     * @param FileUploadService $fileUploadService
+     * @param Products $model
+     * @return string
+     */
+    public function actionAdd(FileUploadService $fileUploadService, Products $model): string
     {
-        $model = new Products();
+        if ($model->load(Yii::$app->request->post())) {
+            $model->picture_name = $fileUploadService->uploadFile($model, 'picture_name', 'products');
 
-        if ($model->load(Yii::$app->request->post())){
-            $uploadFile = UploadedFile::getInstance($model,'picture_name');
-
-            $safeFileName = strtolower(md5( $uploadFile->getBaseName(). random_bytes(4)));
-            $safeFileName .= '.'.$uploadFile->getExtension();
-
-            try {
-                $result = $uploadFile->saveAs(Yii::getAlias('@productUpload').'/'.$safeFileName);
-            } catch (ErrorException $e) {
-                $result = $e->getMessage();
-            }
-
-            $model->picture_name = $safeFileName;
-
-            if ($result === true && $model->save()) {
+            if ($model->picture_name !== false && $model->save()) {
                 Yii::$app->session->setFlash('products');
             } else {
-                Yii::$app->session->setFlash('products', $result);
+                Yii::$app->session->setFlash('products', 'Error while adding product');
             }
         }
 
         return $this->render('add', ['model' => $model]);
     }
 
-    public function actionDelete(): Response
+    /**
+     * @param Products $model
+     * @return Response
+     */
+    public function actionDelete(Products $model): Response
     {
-        $model = new Products();
         if ($ids = Yii::$app->request->post()['ids']) {
             $model->deleteProducts($ids);
         }
+
         return $this->redirect(Yii::$app->request->referrer);
     }
 
-    public function actionUpdate(): string
+    /**
+     * @param FileUploadService $fileUploadService
+     * @param Products $model
+     * @return string
+     */
+    public function actionUpdate(FileUploadService $fileUploadService, Products $model): string
     {
-        return $this->render('update');
+        //TODO Не изменить фото если не отправлена новая
+        $id = YII::$app->request->get('id');
+
+        if (isset($id) && !empty($id)) {
+            $model = $model->getById($id);
+        }
+
+        if ($model->load(Yii::$app->request->post())) {
+            $model->picture_name = $fileUploadService->uploadFile($model, 'picture_name', 'products');
+
+            if ($model->picture_name !== false && $model->save()) {
+                Yii::$app->session->setFlash('products');
+            } else {
+                Yii::$app->session->setFlash('products', 'Error while updating product');
+            }
+        }
+
+        return $this->render('update', ['model' => $model]);
     }
 
 }

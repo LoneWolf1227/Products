@@ -1,14 +1,18 @@
 <?php
 
 /* @var $this \yii\web\View */
+
 /* @var $content string */
 
 use app\assets\AppAsset;
+use app\models\SearchForm;
 use app\widgets\Alert;
 use yii\bootstrap4\Breadcrumbs;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\Nav;
 use yii\bootstrap4\NavBar;
+
+$model = new SearchForm();
 
 AppAsset::register($this);
 ?>
@@ -35,13 +39,13 @@ AppAsset::register($this);
         ],
     ]);
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav'],
+        'options' => ['class' => 'navbar-nav ml-auto'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
+            ['label' => 'Home', 'url' => ['/list/show']],
+            Yii::$app->user->isGuest ? ('') : (['label' => 'Add', 'url' => ['/product/add']]),
+            Yii::$app->user->isGuest ? ('') : (['label' => 'Delete', 'url' => ['/product/delete']]),
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
+            ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post', ['class' => 'form-inline'])
@@ -51,7 +55,16 @@ AppAsset::register($this);
                 )
                 . Html::endForm()
                 . '</li>'
-            )
+            ),
+            (
+                    //TODO Найти способ и заменит форму ра ActiveForm
+                '<li>'
+                . Html::beginForm(['/list/search'], 'get', ['class' => 'form-inline', 'name' => 'search'])
+                . Html::textInput('q', $model->q, ['class' => 'input'])
+                . Html::submitButton('Найти', ['class' => 'btn btn-link logout'])
+                . Html::endForm()
+                . '</li>'
+            ),
         ],
     ]);
     NavBar::end();
@@ -61,7 +74,7 @@ AppAsset::register($this);
 <main role="main" class="flex-shrink-0">
     <div class="container">
         <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
+            'links' => $this->params['breadcrumbs'] ?? [],
         ]) ?>
         <?= Alert::widget() ?>
         <?= $content ?>

@@ -10,7 +10,7 @@ $config = [
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
-        '@productUpload' => dirname(__DIR__) . '/web/upload/products'
+        '@fileUpload' => dirname(__DIR__) . '/web/upload'
     ],
     'components' => [
         'request' => [

@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use yii\data\Pagination;
 use yii\db\ActiveRecord;
 
 /**
@@ -57,4 +58,31 @@ class Products extends ActiveRecord
         Products::deleteAll(['and', 'id' => $this->id], ['in', 'id', $ids]);
     }
 
+    public function getById($id): ?Products
+    {
+        return Products::findOne($id);
+    }
+
+    public function getProducts($q = ''): array
+    {
+        if (empty($q)) {
+            $query = Products::find();
+        } else {
+            $query = Products::find()->where(['like', 'name', $q])->orWhere(['like', 'sku', $q]);
+        }
+
+        $countQuery = clone $query;
+        $pages = new Pagination([
+            'defaultPageSize' => 10,
+            'totalCount' => $countQuery->count()
+        ]);
+        $models = $query->offset($pages->offset)
+            ->limit($pages->limit)
+            ->all();
+
+        return [
+            'models' => $models,
+            'pages' => $pages,
+        ];
+    }
 }
